@@ -1,6 +1,6 @@
 module Token exposing (..)
 
-import Parser exposing (Parser)
+import Parser exposing ((|.), (|=), Parser, float, keyword, map, oneOf, succeed, symbol)
 
 
 type alias Name =
@@ -8,8 +8,8 @@ type alias Name =
 
 
 type Token
-    = LeftParen
-    | RightParen
+    = LEFT_PAREN
+    | RIGHT_PAREN
     | LEFT_BRACE
     | RIGHT_BRACE
     | COMMA
@@ -56,4 +56,31 @@ scan source =
 
 parser : Parser (List Token)
 parser =
-    Parser.succeed [ EOF ]
+    Parser.loop [] loopHelper
+
+
+loopHelper : List Token -> Parser (Parser.Step (List Token) (List Token))
+loopHelper tokens =
+    oneOf
+        [ succeed (\token -> Parser.Loop (token :: tokens))
+            |= singleCharacterParser
+        , succeed (Parser.Done (List.reverse (EOF :: tokens)))
+            |. Parser.end
+        , Parser.problem "unexpected character"
+        ]
+
+
+singleCharacterParser : Parser Token
+singleCharacterParser =
+    oneOf
+        [ symbol "{" |> Parser.map (\_ -> LEFT_BRACE)
+        , symbol "}" |> Parser.map (\_ -> RIGHT_BRACE)
+        , symbol "(" |> Parser.map (\_ -> LEFT_PAREN)
+        , symbol ")" |> Parser.map (\_ -> RIGHT_PAREN)
+        , symbol "," |> Parser.map (\_ -> COMMA)
+        , symbol "." |> Parser.map (\_ -> DOT)
+        , symbol "-" |> Parser.map (\_ -> MINUS)
+        , symbol "+" |> Parser.map (\_ -> PLUS)
+        , symbol ";" |> Parser.map (\_ -> SEMICOLON)
+        , symbol "*" |> Parser.map (\_ -> STAR)
+        ]
