@@ -8,7 +8,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm install && npm run build && node index.js example.lox",
+    "test": "elm-test",
+    "build": "elm make src/Main.elm --output=dist/elm.js"
   },
   "author": "",
   "license": "ISC"
