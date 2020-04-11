@@ -30,6 +30,26 @@ suite =
                     "orchid"
                         |> Token.scan
                         |> Expect.equal (Ok [ Token.Identifier "orchid", Token.EOF ])
+            , test "number with . in middle" <|
+                \_ ->
+                    "2.5"
+                        |> Token.scan
+                        |> Expect.equal (Ok [ Token.Number 2.5, Token.EOF ])
+            , test "number starting with ." <|
+                \_ ->
+                    ".5"
+                        |> Token.scan
+                        |> Expect.err
+            , test "full int" <|
+                \_ ->
+                    "200"
+                        |> Token.scan
+                        |> Expect.equal (Ok [ Token.Number 200, Token.EOF ])
+            , test "full int trailing ." <|
+                \_ ->
+                    "200."
+                        |> Token.scan
+                        |> Expect.err
             , test "error" <|
                 \_ ->
                     "$%$ chicket"

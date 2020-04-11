@@ -64,7 +64,8 @@ loopHelper tokens =
     oneOf
         [ succeed (\token -> Parser.Loop (token :: tokens))
             |= oneOf
-                [ singleCharacterParser
+                [ numberParser
+                , singleCharacterParser
                 , reservedWordParser
                 , identifierParser
                 ]
@@ -90,15 +91,6 @@ singleCharacterParser =
         ]
 
 
-php : Parser String
-php =
-    getChompedString <|
-        succeed ()
-            |. chompIf (\c -> c == '$')
-            |. chompIf (\c -> Char.isAlpha c || c == '_')
-            |. chompWhile (\c -> Char.isAlphaNum c || c == '_')
-
-
 identifierParser : Parser Token
 identifierParser =
     succeed Identifier
@@ -111,6 +103,38 @@ alphaParser =
         succeed ()
             |. chompIf (\c -> Char.isAlpha c || c == '_')
             |. chompWhile (\c -> Char.isAlphaNum c || c == '_')
+
+
+numberParser : Parser Token
+numberParser =
+    succeed Number
+        |= numberLiteralParser
+
+
+numberLiteralParser : Parser Float
+numberLiteralParser =
+    let
+        failIfNotFloat : String -> Parser Float
+        failIfNotFloat str =
+            case String.toFloat str of
+                Just float ->
+                    succeed float
+
+                Nothing ->
+                    problem "not a float!"
+    in
+    oneOf
+        [ symbol "." |> andThen (\_ -> problem "Cannot start with .")
+        , backtrackable int |> map toFloat
+        , (succeed ()
+            |. chompWhile Char.isDigit
+            |. chompIf ((==) '.')
+            |. chompIf Char.isDigit
+            |. chompWhile Char.isDigit
+          )
+            |> getChompedString
+            |> andThen failIfNotFloat
+        ]
 
 
 reservedWordParser : Parser Token
