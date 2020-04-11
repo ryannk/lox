@@ -65,6 +65,7 @@ loopHelper tokens =
         [ succeed (\token -> Parser.Loop (token :: tokens))
             |= oneOf
                 [ numberParser
+                , stringLiteralParser
                 , singleCharacterParser
                 , reservedWordParser
                 , identifierParser
@@ -134,6 +135,28 @@ numberLiteralParser =
           )
             |> getChompedString
             |> andThen failIfNotFloat
+        ]
+
+
+stringLiteralParser : Parser String
+stringLiteralParser =
+    (succeed ()
+        |. chompIf ((==) '"')
+        |. loop () validStringCharacter
+    )
+        |> getChompedString
+
+
+validStringCharacter : () -> Parser (Step () ())
+validStringCharacter _ =
+    oneOf
+        [ succeed (Loop ())
+            |. chompIf ((==) '\\')
+            |. chompIf ((==) '"')
+        , succeed (Loop ())
+            |. chompIf ((/=) '"')
+        , succeed (Done ())
+            |. chompIf ((==) '"')
         ]
 
 
