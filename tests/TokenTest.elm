@@ -22,15 +22,14 @@ suite =
                         |> Expect.equal (Ok [ Token.LeftParen, Token.RightParen, Token.EOF ])
             , test "Parentheses with keyworks" <|
                 \_ ->
-                    "(var)"
+                    "(var;)"
                         |> Token.scan
-                        |> Expect.equal (Ok [ Token.LeftParen, Token.Var, Token.RightParen, Token.EOF ])
-            , skip <|
-                test "orchid not or" <|
-                    \_ ->
-                        "orchid"
-                            |> Token.scan
-                            |> Expect.equal (Ok [ Token.Identifier "orchid", Token.EOF ])
+                        |> Expect.equal (Ok [ Token.LeftParen, Token.Var, Token.Semicolon, Token.RightParen, Token.EOF ])
+            , test "orchid not or" <|
+                \_ ->
+                    "orchid"
+                        |> Token.scan
+                        |> Expect.equal (Ok [ Token.Identifier "orchid", Token.EOF ])
             , test "error" <|
                 \_ ->
                     "$%$ chicket"

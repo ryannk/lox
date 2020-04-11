@@ -1,6 +1,6 @@
 module Token exposing (..)
 
-import Parser exposing ((|.), (|=), Parser, float, keyword, map, oneOf, succeed, symbol)
+import Parser exposing (..)
 
 
 type alias Name =
@@ -66,6 +66,7 @@ loopHelper tokens =
             |= oneOf
                 [ singleCharacterParser
                 , reservedWordParser
+                , identifierParser
                 ]
         , succeed (Parser.Done (List.reverse (EOF :: tokens)))
             |. Parser.end
@@ -87,6 +88,29 @@ singleCharacterParser =
         , symbol ";" |> Parser.map (\_ -> Semicolon)
         , symbol "*" |> Parser.map (\_ -> Star)
         ]
+
+
+php : Parser String
+php =
+    getChompedString <|
+        succeed ()
+            |. chompIf (\c -> c == '$')
+            |. chompIf (\c -> Char.isAlpha c || c == '_')
+            |. chompWhile (\c -> Char.isAlphaNum c || c == '_')
+
+
+identifierParser : Parser Token
+identifierParser =
+    succeed Identifier
+        |= alphaParser
+
+
+alphaParser : Parser String
+alphaParser =
+    Parser.getChompedString <|
+        succeed ()
+            |. chompIf (\c -> Char.isAlpha c || c == '_')
+            |. chompWhile (\c -> Char.isAlphaNum c || c == '_')
 
 
 reservedWordParser : Parser Token
