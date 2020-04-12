@@ -138,13 +138,14 @@ numberLiteralParser =
         ]
 
 
-stringLiteralParser : Parser String
+stringLiteralParser : Parser Token
 stringLiteralParser =
     (succeed ()
         |. chompIf ((==) '"')
         |. loop () validStringCharacter
     )
         |> getChompedString
+        |> map String
 
 
 validStringCharacter : () -> Parser (Step () ())
