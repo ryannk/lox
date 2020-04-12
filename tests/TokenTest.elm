@@ -50,6 +50,21 @@ suite =
                     "200."
                         |> Token.scan
                         |> Expect.err
+            , test "strings require a closing double quote" <|
+                \_ ->
+                    "\"Hello"
+                        |> Token.scan
+                        |> Expect.err
+            , test "strings work without escaped quotes" <|
+                \_ ->
+                    "\"Hello\""
+                        |> Token.scan
+                        |> Expect.ok [ Token.String "\"Hello\"", Token.EOF ]
+            , test "strings work with escaped quotes" <|
+                \_ ->
+                    "\"Hello, \\\"Kelch\\\"!\""
+                        |> Token.scan
+                        |> Expect.ok [ Token.String "\"Hello, \\\"Kelch\\\"!\"", Token.EOF ]
             , test "error" <|
                 \_ ->
                     "$%$ chicket"
