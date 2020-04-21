@@ -1,4 +1,4 @@
-module Token exposing (..)
+module Token exposing (Token(..), scan)
 
 import Parser exposing (..)
 
@@ -62,22 +62,31 @@ parser =
 loopHelper : List Token -> Parser (Parser.Step (List Token) (List Token))
 loopHelper tokens =
     oneOf
-        [ succeed (\token -> Parser.Loop (token :: tokens))
+        [ succeed (Parser.Loop tokens)
+            |. oneOf
+                [ commentParser
+                , chompIf (\c -> c == ' ' || c == '\n' || c == '\u{000D}' || c == '\t')
+                ]
+        , succeed (\token -> Parser.Loop (token :: tokens))
             |= oneOf
                 [ numberParser
                 , stringLiteralParser
-                , singleCharacterParser
+                , symbolParser
                 , reservedWordParser
                 , identifierParser
                 ]
         , succeed (Parser.Done (List.reverse (EOF :: tokens)))
             |. Parser.end
-        , Parser.problem "unexpected character"
         ]
 
 
-singleCharacterParser : Parser Token
-singleCharacterParser =
+commentParser : Parser ()
+commentParser =
+    lineComment "//"
+
+
+symbolParser : Parser Token
+symbolParser =
     oneOf
         [ symbol "{" |> Parser.map (\_ -> LeftBrace)
         , symbol "}" |> Parser.map (\_ -> RightBrace)
@@ -89,6 +98,15 @@ singleCharacterParser =
         , symbol "+" |> Parser.map (\_ -> Plus)
         , symbol ";" |> Parser.map (\_ -> Semicolon)
         , symbol "*" |> Parser.map (\_ -> Star)
+        , symbol "!=" |> Parser.map (\_ -> BangEqual)
+        , symbol "!" |> Parser.map (\_ -> Bang)
+        , symbol "/" |> Parser.map (\_ -> Slash)
+        , symbol "==" |> Parser.map (\_ -> EqualEqual)
+        , symbol "=" |> Parser.map (\_ -> Equal)
+        , symbol "<=" |> Parser.map (\_ -> LessEqual)
+        , symbol "<" |> Parser.map (\_ -> Less)
+        , symbol ">=" |> Parser.map (\_ -> GreaterEqual)
+        , symbol ">" |> Parser.map (\_ -> Greater)
         ]
 
 
@@ -145,6 +163,7 @@ stringLiteralParser =
         |. loop () validStringCharacter
     )
         |> getChompedString
+        |> map (\str -> String.dropLeft 1 str |> String.dropRight 1)
         |> map String
 
 

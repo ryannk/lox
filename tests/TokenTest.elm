@@ -59,16 +59,40 @@ suite =
                 \_ ->
                     "\"Hello\""
                         |> Token.scan
-                        |> Expect.ok [ Token.String "\"Hello\"", Token.EOF ]
+                        |> Expect.equal (Ok [ Token.String "Hello", Token.EOF ])
             , test "strings work with escaped quotes" <|
                 \_ ->
                     "\"Hello, \\\"Kelch\\\"!\""
                         |> Token.scan
-                        |> Expect.ok [ Token.String "\"Hello, \\\"Kelch\\\"!\"", Token.EOF ]
+                        |> Expect.equal (Ok [ Token.String "Hello, \\\"Kelch\\\"!", Token.EOF ])
             , test "error" <|
                 \_ ->
                     "$%$ chicket"
                         |> Token.scan
                         |> Expect.err
+            , test "operators" <|
+                \_ ->
+                    [ "==", "!=", ">=", ">", "<=", "<", "!", "/" ]
+                        |> List.map Token.scan
+                        |> Expect.equalLists
+                            [ Ok [ EqualEqual, EOF ]
+                            , Ok [ BangEqual, EOF ]
+                            , Ok [ GreaterEqual, EOF ]
+                            , Ok [ Greater, EOF ]
+                            , Ok [ LessEqual, EOF ]
+                            , Ok [ Less, EOF ]
+                            , Ok [ Bang, EOF ]
+                            , Ok [ Slash, EOF ]
+                            ]
+            , test "comments" <|
+                \_ ->
+                    "// test this is nothing"
+                        |> Token.scan
+                        |> Expect.equal (Ok [ EOF ])
+            , test "single line cannot have new linge" <|
+                \_ ->
+                    "// test \n hello"
+                        |> Token.scan
+                        |> Expect.equal (Ok [ Identifier "hello", EOF ])
             ]
         ]
