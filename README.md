@@ -1,4 +1,4 @@
-# ELM Lox
+# Elm Lox
 
 Creating the [lox language](https://craftinginterpreters.com/the-lox-language.html) in Elm!
 
