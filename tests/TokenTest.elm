@@ -20,7 +20,7 @@ suite =
                     "()"
                         |> Token.scan
                         |> Expect.equal (Ok [ Token.LeftParen, Token.RightParen, Token.EOF ])
-            , test "Parentheses with keyworks" <|
+            , test "Parentheses with key works" <|
                 \_ ->
                     "(var;)"
                         |> Token.scan
